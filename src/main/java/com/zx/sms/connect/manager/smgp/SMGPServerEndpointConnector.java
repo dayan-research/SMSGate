@@ -19,7 +19,9 @@ public class SMGPServerEndpointConnector extends AbstractServerEndpointConnector
 	@Override
 	protected void doinitPipeLine(ChannelPipeline pipeline) {
 		EndpointEntity entity = getEndpointEntity();
-		pipeline.addLast(GlobalConstance.IdleCheckerHandlerName, new IdleStateHandler(0, 0, entity.getIdleTimeSec(), TimeUnit.SECONDS));
+		if(!entity.isCloseIdleTest()) {
+			pipeline.addLast(GlobalConstance.IdleCheckerHandlerName, new IdleStateHandler(0, 0, entity.getIdleTimeSec(), TimeUnit.SECONDS));
+		}
 		pipeline.addLast("SmgpServerIdleStateHandler", GlobalConstance.smgpidleHandler);
 		pipeline.addLast(SMGPCodecChannelInitializer.pipeName(), new SMGPCodecChannelInitializer(0x30));  //默认使用3.0协议，用户登陆后再更换为正确的协议
 		pipeline.addLast(GlobalConstance.sessionLoginManager, new SMGPSessionLoginManager(getEndpointEntity()));

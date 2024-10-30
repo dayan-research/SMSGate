@@ -52,7 +52,9 @@ public class SMPPClientEndpointConnector extends AbstractClientEndpointConnector
 	@Override
 	protected void doinitPipeLine(ChannelPipeline pipeline) {
 		EndpointEntity entity = getEndpointEntity();
-		pipeline.addLast(GlobalConstance.IdleCheckerHandlerName, new IdleStateHandler(0, 0, entity.getIdleTimeSec(), TimeUnit.SECONDS));
+		if(!entity.isCloseIdleTest()) {
+			pipeline.addLast(GlobalConstance.IdleCheckerHandlerName, new IdleStateHandler(0, 0, entity.getIdleTimeSec(), TimeUnit.SECONDS));
+		}
 		pipeline.addLast("SmppServerIdleStateHandler", GlobalConstance.smppidleHandler);
 		pipeline.addLast(SMPPCodecChannelInitializer.pipeName(), new SMPPCodecChannelInitializer(entity));
 		pipeline.addLast(GlobalConstance.sessionLoginManager, new SMPPSessionLoginManager(getEndpointEntity()));
