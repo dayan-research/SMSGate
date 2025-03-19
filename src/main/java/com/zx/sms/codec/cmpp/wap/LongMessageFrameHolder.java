@@ -611,14 +611,13 @@ public enum LongMessageFrameHolder {
 		byte[] msgcontent = frame.getMsgContentBytes();
 
 		UserDataHeader header = parseUserDataHeader(msgcontent);
-
+		FrameHolder frameholder = null;
+		InformationElement appudhinfo = null;
+		int i = 0;
+		int frameKey = 0;
+		short pknumber = 1;
+		short pkTotle = 1;
 		if (header.infoElement.size() > 0) {
-			FrameHolder frameholder = null;
-			InformationElement appudhinfo = null;
-			int i = 0;
-			int frameKey = 0;
-			short pknumber = 1;
-			short pkTotle = 1;
 			for (InformationElement udhi : header.infoElement) {
 				if (SmsUdhIei.CONCATENATED_8BIT.equals(udhi.udhIei)) {
 					i = 0;
@@ -654,36 +653,46 @@ public enum LongMessageFrameHolder {
 			if (frameholder == null) {
 				frameholder = new FrameHolder(0, 1);
 			}
-			// 如果没有app的udh，默认为文本短信
-
-			frameholder.setAppUDHinfo(appudhinfo);
-			frameholder.setMsgfmt(frame.getMsgfmt());
-			frameholder.setSequence(frame.getSequence());
-			frameholder.setServiceNum(serviceNum);
-			frameholder.merge(frame, frame.getPayloadbytes(header.headerlength), pknumber - 1);
-
-			return frameholder;
+		}else {
+			//错误的长短信报文，设置了长短信标识头（tpudhi） ,但短信内容里没有udh 。当成普通短信文本处理
+			frameholder = new FrameHolder(0, 1);
 		}
-
-		throw new NotSupportedException("Not Support LongMsg");
+		frameholder.setAppUDHinfo(appudhinfo);
+		frameholder.setMsgfmt(frame.getMsgfmt());
+		frameholder.setSequence(frame.getSequence());
+		frameholder.setServiceNum(serviceNum);
+		frameholder.merge(frame, frame.getPayloadbytes(header.headerlength), pknumber - 1);
+		return frameholder;
 	}
 
 	private UserDataHeader parseUserDataHeader(byte[] pdu) {
 		UserDataHeader udh = new UserDataHeader();
-		udh.headerlength = pdu[0]; // 05
+		udh.headerlength = pdu[0] & 0xff; // 05
 		udh.infoElement = new ArrayList<InformationElement>();
 
-		int i = 1;
-		while (i < udh.headerlength) {
-			InformationElement t = new InformationElement();
-			t.udhIei = SmsUdhIei.valueOf(pdu[i++]); // 00
-			t.infoEleLength = pdu[i++]; // 03
-			t.infoEleData = new byte[t.infoEleLength];
-			if (t.infoEleLength > 0) {
-				System.arraycopy(pdu, i, t.infoEleData, 0, t.infoEleLength);
-				i += t.infoEleLength;
+		//不支持长短信的多关，	可能出现错误的长短信报文，设置了长短信标识头（tpudhi） ,但短信内容里没有udh头
+		if(udh.headerlength > pdu.length) {
+			udh.headerlength = 0;
+			return udh;
+		}
+			
+		try {
+			int i = 1;
+			while (i < udh.headerlength) {
+				InformationElement t = new InformationElement();
+				t.udhIei = SmsUdhIei.valueOf(pdu[i++]); // 00
+				t.infoEleLength = pdu[i++]; // 03
+				t.infoEleData = new byte[t.infoEleLength];
+				if (t.infoEleLength > 0) {
+					System.arraycopy(pdu, i, t.infoEleData, 0, t.infoEleLength);
+					i += t.infoEleLength;
+				}
+				udh.infoElement.add(t);
 			}
-			udh.infoElement.add(t);
+		}catch(Exception e) {
+			//错误的UDH，当成无UDH处理
+			udh.headerlength = 0; 
+			udh.infoElement = new ArrayList<InformationElement>();
 		}
 		return udh;
 	}

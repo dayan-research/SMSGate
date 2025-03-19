@@ -2,6 +2,8 @@ package com.zx.sms.codec.cmpp;
 
 import java.util.UUID;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -140,5 +142,37 @@ public class TestCmpp20SubmitRequestMessageCodec extends AbstractTestMessageCode
 		Assert.assertEquals(msg.getServiceId(), result.getServiceId());
 		Assert.assertArrayEquals(msg.getDestterminalId(), result.getDestterminalId());
 		Assert.assertEquals(msg.getMsgContent(), result.getMsgContent());
+	}
+	
+	@Test
+	public void testErrTpudhiMsg1() throws DecoderException {
+		//测试不支持长短信的多关，	可能出现错误的长短信报文，设置了长短信标识头（tpudhi） ,但短信内容里没有udh头
+			byte[] expected = Hex.decodeHex("0000012b0000000467e38b7f39c937c5db294704030100093130303030000000000002000000000000000000000000000000000000000000000108000000000000303130303030303000000000000000000000000000000000000000000000000000000000000000000000313030303000000000000000000000000000000000013133383030313338303030000000000000000000008c51d1003100320033003200334e2d0034003500360037003800390030003100410073007300420043003500360037003800390030003100320033003400350036003700380039003000310032003300340035003600370038003900300031003200330034003500360037003800390030003100320033003400350036003700380039003000310032003300340000000000000000".toCharArray()) ;;
+			ByteBuf buf = Unpooled.buffer(expected.length);
+			buf.writeBytes(expected);
+			byte[] actuals = new byte[expected.length];
+			int index = 0;
+			ch.writeInbound(buf);
+			CmppSubmitRequestMessage result = null;
+			while (null != (result = (CmppSubmitRequestMessage) ch.readInbound())) {
+				System.out.println(result);
+				Assert.assertEquals("凑12323中45678901AssBC56789012345678901234567890123456789012345678901234", result.getMsgContent());
+			}
+	}
+	
+	@Test
+	public void testErrTpudhiMsg2() throws DecoderException {
+		//测试不支持长短信的多关，	可能出现错误的长短信报文，设置了长短信标识头（tpudhi） ,但短信内容里没有udh头
+			byte[] expected = Hex.decodeHex("0000012b0000000467e38b7f39c937c5db294704030100093130303030000000000002000000000000000000000000000000000000000000000108000000000000303130303030303000000000000000000000000000000000000000000000000000000000000000000000313030303000000000000000000000000000000000013133383030313338303030000000000000000000008c91d1003100320033003200334e2d0034003500360037003800390030003100410073007300420043003500360037003800390030003100320033003400350036003700380039003000310032003300340035003600370038003900300031003200330034003500360037003800390030003100320033003400350036003700380039003000310032003300340000000000000000".toCharArray()) ;;
+			ByteBuf buf = Unpooled.buffer(expected.length);
+			buf.writeBytes(expected);
+			byte[] actuals = new byte[expected.length];
+			int index = 0;
+			ch.writeInbound(buf);
+			CmppSubmitRequestMessage result = null;
+			while (null != (result = (CmppSubmitRequestMessage) ch.readInbound())) {
+				System.out.println(result);
+				Assert.assertEquals("金12323中45678901AssBC56789012345678901234567890123456789012345678901234", result.getMsgContent());
+			}
 	}
 }
