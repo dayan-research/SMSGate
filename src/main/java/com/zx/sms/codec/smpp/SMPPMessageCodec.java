@@ -13,6 +13,7 @@ import com.zx.sms.connect.manager.EndpointEntity;
 import com.zx.sms.connect.manager.smpp.SMPPEndpointEntity;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 
@@ -46,6 +47,7 @@ public class SMPPMessageCodec extends MessageToMessageCodec<ByteBuf, Pdu> {
 				out.add(buf);
 			}
 		} catch (Exception e) {
+			logger.warn("error SMPPMessageCodec encode . pdu:{}",msg.toString());
 			logger.error("",e);
 		}
 	}
@@ -64,6 +66,10 @@ public class SMPPMessageCodec extends MessageToMessageCodec<ByteBuf, Pdu> {
 
 			}
 		} catch (Exception e) {
+			int writeIdx = msg.writerIndex();
+			byte[] bytes = new byte[writeIdx];
+			msg.getBytes(0,bytes);
+			logger.warn("error SMPPMessageCodec decode . dump:{}",ByteBufUtil.hexDump(bytes));
 			logger.error("",e);
 		}
 	}

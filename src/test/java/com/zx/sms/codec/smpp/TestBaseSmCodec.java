@@ -51,6 +51,15 @@ public class TestBaseSmCodec extends AbstractSMPPTestMessageCodec<BaseSm> {
 		entity.setUseHexReceiptedMessageId(true);
 		return entity;
 	}
+	@Test
+	public void decodeDeliverSmError() throws Exception {
+		ByteBuf buffer = Unpooled.wrappedBuffer(Hex.decodeHex(
+				"000000A2000000050000000000116AD500010134343935313336313932303537000501475442616E6B000400000000010000000169643A3934323531343330393233207375623A30303120646C7672643A303031207375626D697420646174653A3039313130343031323420646F6E6520646174653A3039313130343031323420737461743A41434345505444206572723A31303720746578743A20323646313032"
+						.toCharArray()));
+
+		DeliverSm pdu0 = (DeliverSm) decode(buffer);
+		Assert.assertNull(pdu0);
+	}
 
 	@Test
 	public void decodeDeliverSmWithDeliveryReceiptThatFailedFromEndToEnd() throws Exception {
