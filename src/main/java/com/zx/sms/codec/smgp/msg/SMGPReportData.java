@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.CharMatcher;
 import com.zx.sms.codec.smgp.util.ByteUtil;
 import com.zx.sms.codec.smgp.util.SMGPMsgIdUtil;
 
@@ -18,7 +17,8 @@ public class SMGPReportData implements Serializable {
 	 */
 	private static final long serialVersionUID = 1038868368719047952L;
 	private static final Logger logger = LoggerFactory.getLogger(SMGPReportData.class);
-	public static final int LENGTH = 10 + 3 + 3 + 10 + 10 + 7 + 3 + 20 + "id: sub: dlvrd: submit date: done date: stat: err: text:".length();
+	public static final int LENGTH = 10 + 3 + 3 + 10 + 10 + 7 + 3 + 20
+			+ "id: sub: dlvrd: submit date: done date: stat: err: text:".length();
 
 	private MsgId msgId; // 10
 	private String sub = "001"; // 3
@@ -90,40 +90,49 @@ public class SMGPReportData implements Serializable {
 			offset += " text:".length();
 
 			tmp = new byte[20];
-			System.arraycopy(bytes, offset, tmp, 0, bytes.length-offset);
-			byte[] text_length = new byte[] {tmp[0],tmp[1],tmp[2]};
-			String t_text_length = StringUtils.trim(new String(text_length,StandardCharsets.US_ASCII));
-			if(tmp[0]>0 && tmp[1] > 0 && tmp[2]>0 && isAllOfASCII(text_length) && StringUtils.isNumeric(t_text_length)) {
-				
-				
+			System.arraycopy(bytes, offset, tmp, 0, bytes.length - offset);
+			byte[] text_length = new byte[] { tmp[0], tmp[1], tmp[2] };
+			String t_text_length = StringUtils.trim(new String(text_length, StandardCharsets.US_ASCII));
+			if (tmp[0] > 0 && tmp[1] > 0 && tmp[2] > 0 && isAllOfASCII(text_length)
+					&& StringUtils.isNumeric(t_text_length)) {
+
 				byte[] t_text_txt = new byte[17];
-				System.arraycopy(bytes, offset+3, t_text_txt, 0, 17);
-				
-				if(isAllOfASCII(t_text_txt)) {
-					txt = t_text_length+new String(ByteUtil.rtrimBytes(t_text_txt),StandardCharsets.US_ASCII);
-				}else {
-					txt = t_text_length+new String(ByteUtil.rtrimBytes(t_text_txt),StandardCharsets.UTF_16BE);
+				System.arraycopy(bytes, offset + 3, t_text_txt, 0, 17);
+
+				if (isAllOfASCII(t_text_txt)) {
+					txt = t_text_length + new String(ByteUtil.rtrimBytes(t_text_txt), StandardCharsets.US_ASCII);
+				} else {
+					txt = t_text_length + new String(ByteUtil.rtrimBytes(t_text_txt), StandardCharsets.UTF_16BE);
 				}
-			}else {
-				if(isAllOfASCII(tmp)) {
-					txt = new String(ByteUtil.rtrimBytes(tmp),StandardCharsets.US_ASCII);
-				}else {
-					txt = new String(ByteUtil.rtrimBytes(tmp),StandardCharsets.UTF_16BE);
+			} else {
+				if (isAllOfASCII(tmp)) {
+					txt = new String(ByteUtil.rtrimBytes(tmp), StandardCharsets.US_ASCII);
+				} else {
+					txt = new String(ByteUtil.rtrimBytes(tmp), StandardCharsets.UTF_16BE);
 				}
 			}
 
 			offset += 20;
 			return true;
 		} catch (Exception ex) {
-			logger.warn("parse data err length:{} ; 0x{}",bytes.length,Hex.encodeHexString(bytes));
+			logger.warn("parse data err length:{} ; 0x{}", bytes.length, Hex.encodeHexString(bytes));
 			return true;
 		}
 	}
-	
+
 	private boolean isAllOfASCII(byte[] seq) {
-		//判断是否是ASCII码
-		for(byte b : seq) {
-			if(b < 0 || b > 0x7f) {
+		// 判断是否是ASCII码
+		for (byte b : seq) {
+			if (b < 0 || b > 0x7f) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isAllOfASCII(CharSequence sequence) {
+		for (int i = sequence.length() - 1; i >= 0; i--) {
+			if (sequence.charAt(i) < 0 || sequence.charAt(i) > 0x7f) {
 				return false;
 			}
 		}
@@ -178,22 +187,23 @@ public class SMGPReportData implements Serializable {
 
 		System.arraycopy(" text:".getBytes(), 0, bytes, offset, " text:".length());
 		offset += " text:".length();
-		
-		if(StringUtils.isNotBlank(txt) && txt.length()>3 && isAllOfASCII(txt.substring(0, 3).getBytes()) && StringUtils.isNumeric(txt.substring(0, 3))) {
+
+		if (StringUtils.isNotBlank(txt) && txt.length() > 3 && isAllOfASCII(txt.substring(0, 3))
+				&& StringUtils.isNumeric(txt.substring(0, 3))) {
 			ByteUtil.rfillBytes(txt.substring(0, 3).getBytes(), 3, bytes, offset);
 			String txt_content = txt.substring(3);
-			if(CharMatcher.ASCII.matchesAllOf(txt_content)) {
+			if (isAllOfASCII(txt_content)) {
 				byte[] tmp = txt_content.getBytes(StandardCharsets.US_ASCII);
-				ByteUtil.rfillBytes(tmp, 17, bytes, offset+3);
-			}else {
+				ByteUtil.rfillBytes(tmp, 17, bytes, offset + 3);
+			} else {
 				byte[] tmp = txt_content.getBytes(StandardCharsets.UTF_16BE);
-				ByteUtil.rfillBytes(tmp, 17, bytes, offset+3);
+				ByteUtil.rfillBytes(tmp, 17, bytes, offset + 3);
 			}
-		}else {
-			if(CharMatcher.ASCII.matchesAllOf(txt)) {
+		} else {
+			if (isAllOfASCII(txt)) {
 				byte[] tmp = txt.getBytes(StandardCharsets.US_ASCII);
 				ByteUtil.rfillBytes(tmp, 20, bytes, offset);
-			}else {
+			} else {
 				byte[] tmp = txt.getBytes(StandardCharsets.UTF_16BE);
 				ByteUtil.rfillBytes(tmp, 20, bytes, offset);
 			}
@@ -265,7 +275,7 @@ public class SMGPReportData implements Serializable {
 	}
 
 	public void setTxt(String txt) {
-		this.txt = txt == null?"":txt;
+		this.txt = txt == null ? "" : txt;
 	}
 
 	private String msgIdString() {
@@ -274,8 +284,9 @@ public class SMGPReportData implements Serializable {
 
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("{msgId=").append(msgIdString()).append(",").append("sub=").append(sub).append(",").append("dlvrd=").append(dlvrd).append(",")
-				.append("subTime=").append(subTime).append(",").append("doneTime=").append(doneTime).append(",").append("stat=").append(stat).append(",")
+		buffer.append("{msgId=").append(msgIdString()).append(",").append("sub=").append(sub).append(",")
+				.append("dlvrd=").append(dlvrd).append(",").append("subTime=").append(subTime).append(",")
+				.append("doneTime=").append(doneTime).append(",").append("stat=").append(stat).append(",")
 				.append("err=").append(err).append(",").append("text=").append(txt).append("}");
 		return buffer.toString();
 	}
