@@ -213,8 +213,8 @@ public class TestBaseSmCodec extends AbstractSMPPTestMessageCodec<BaseSm> {
 			SubmitSm pdu = new SubmitSm();
 			pdu.setDestAddress(new Address((byte) 0, (byte) 0, "13800138000"));
 			pdu.setSourceAddress(new Address((byte) 0, (byte) 0, "10658987"));
-			String text = "1@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà012345678901234567890012^567890";
-			Assert.assertEquals(159, text.length()); // 159个字符，有一个扩展GSM字符。编码后正好160字节
+			String text = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà012345678901234567890012^567890";
+			Assert.assertEquals(158, text.length()); // 158个字符，有一个扩展GSM字符。编码后正好159字节
 
 			SmppSmsDcs dcs = SmppSmsDcs.getGeneralDataCodingDcs(SmsAlphabet.GSM, SmsMsgClass.CLASS_UNKNOWN);
 			dcs.setUse8bit(use8bit);
@@ -239,11 +239,11 @@ public class TestBaseSmCodec extends AbstractSMPPTestMessageCodec<BaseSm> {
 				BaseSm msg = (BaseSm) transcoder.decode(buf);
 				System.out.println(msg);
 				if (count++ == 0) {
-					Assert.assertEquals(152, msg.getShortMessage().length - udhl);
+					Assert.assertEquals(151, msg.getShortMessage().length - udhl);
 					if (use8bit) {
-						Assert.assertEquals(158, msg.getShortMessage().length);
+						Assert.assertEquals(157, msg.getShortMessage().length);
 					} else {
-						Assert.assertEquals(159, msg.getShortMessage().length);
+						Assert.assertEquals(158, msg.getShortMessage().length);
 					}
 				} else {
 					Assert.assertEquals(9, msg.getShortMessage().length - udhl);
@@ -266,8 +266,8 @@ public class TestBaseSmCodec extends AbstractSMPPTestMessageCodec<BaseSm> {
 			SubmitSm pdu = new SubmitSm();
 			pdu.setDestAddress(new Address((byte) 0, (byte) 0, "13800138000"));
 			pdu.setSourceAddress(new Address((byte) 0, (byte) 0, "10658987"));
-			String text = "1@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà01234567890123456789001234567890";
-			Assert.assertEquals(160, text.length());
+			String text = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà01234567890123456789001234567890";
+			Assert.assertEquals(159, text.length());
 			SmppSmsDcs dcs = SmppSmsDcs.getGeneralDataCodingDcs(SmsAlphabet.GSM, SmsMsgClass.CLASS_UNKNOWN);
 			dcs.setUse8bit(use8bit);
 			pdu.setSmsMsg(new SmsTextMessage(text,dcs));
@@ -291,9 +291,9 @@ public class TestBaseSmCodec extends AbstractSMPPTestMessageCodec<BaseSm> {
 				System.out.println(msg);
 				if (count++ == 0) {
 					if (use8bit) {
-						Assert.assertEquals(159, msg.getShortMessage().length);
+						Assert.assertEquals(158, msg.getShortMessage().length);
 					} else {
-						Assert.assertEquals(159, msg.getShortMessage().length);
+						Assert.assertEquals(158, msg.getShortMessage().length);
 					}
 				} else {
 					if (use8bit) {
