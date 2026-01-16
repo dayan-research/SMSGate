@@ -92,14 +92,14 @@ public abstract class SMPPEndpointEntity extends EndpointEntity {
 	public void setDefauteSmsAlphabet(SmsAlphabet defauteSmsAlphabet) {
 		this.defauteSmsAlphabet = defauteSmsAlphabet;
 	}
-	public SmppSplitType getSplitType() {
+	public String getSplitType() {
 		//smpp34才支持OptionParameter
-		return getInterfaceVersion() < 0x34 ? SmppSplitType.UDH : splitType;
+		return (getInterfaceVersion() < 0x34 ? SmppSplitType.UDH : splitType).getValue();
 	}
+
 	public void setSplitType(SmppSplitType splitType) {
 		this.splitType = splitType;
 	}
-
 	public boolean isUse7bitPack() {
 		return use7bitPack;
 	}

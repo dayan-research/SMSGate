@@ -98,13 +98,18 @@ public class WindowSizeChannelTrafficShapingHandler extends AbstractTrafficShapi
     	//连接关闭时移除该对象
     	ctx.channel().attr(GlobalConstance.SENDWINDOWKEY).set(null);
     	
-        trafficCounter.stop();
+    	if(trafficCounter != null) {
+    		trafficCounter.stop();
+    	}
+        
         // write order control
         synchronized (this) {
             if (ctx.channel().isActive()) {
                 for (ToSend toSend : messagesQueue) {
                     long size = calculateSize(toSend.toSend);
-                    trafficCounter.bytesRealWriteFlowControl(size);
+                    if(trafficCounter != null) {
+                    	trafficCounter.bytesRealWriteFlowControl(size);
+                    }
                     queueSize -= size;
                     ctx.write(toSend.toSend, toSend.promise);
                 }
@@ -113,7 +118,6 @@ public class WindowSizeChannelTrafficShapingHandler extends AbstractTrafficShapi
                     if (toSend.toSend instanceof ByteBuf) {
                         ((ByteBuf) toSend.toSend).release();
                     }
-                    
                     //连接关闭，设置future失败，避免上层业务死等
                     toSend.promise.tryFailure( new IOException("channel InActive.failed by WindowSizeChannelTrafficShapingHandler."));
                 }

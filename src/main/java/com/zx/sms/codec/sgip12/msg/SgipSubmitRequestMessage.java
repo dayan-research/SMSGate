@@ -47,7 +47,7 @@ public class SgipSubmitRequestMessage extends SgipDefaultMessage implements Long
 	private short tpudhi = 0;
 	private SgipSmsDcs msgfmt = SgipSmsDcs.getGeneralDataCodingDcs(SmsAlphabet.ASCII, SmsMsgClass.CLASS_UNKNOWN);
 	private short messagetype = 0;
-	private int messagelength = 120;
+	private int messagelength = 0;
 	private String reserve = GlobalConstance.emptyString;
 	
 	private byte[] msgContentBytes = GlobalConstance.emptyBytes;

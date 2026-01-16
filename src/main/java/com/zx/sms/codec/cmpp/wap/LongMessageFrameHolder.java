@@ -52,6 +52,7 @@ import com.zx.sms.BaseMessage;
 import com.zx.sms.LongSMSMessage;
 import com.zx.sms.codec.LongMessageFrameCache;
 import com.zx.sms.codec.LongMessageFrameProvider;
+import com.zx.sms.codec.smpp.SmppSplitType;
 import com.zx.sms.codec.smpp.msg.BaseSm;
 import com.zx.sms.common.GlobalConstance;
 import com.zx.sms.common.NotSupportedException;
@@ -387,7 +388,7 @@ public enum LongMessageFrameHolder {
 					if (e != null && e instanceof SMPPEndpointEntity && msg instanceof BaseSm) {
 						// SMPP协议判断SmppSplitType
 						t = (LongSMSMessage) ((BaseSm) msg).generateMessage(frame,
-								((SMPPEndpointEntity) e).getSplitType());
+								SmppSplitType.valueOf(((SMPPEndpointEntity) e).getSplitType()));
 					} else {
 						t = (LongSMSMessage) lmsg.generateMessage(frame);
 					}

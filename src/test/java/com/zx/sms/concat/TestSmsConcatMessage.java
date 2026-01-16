@@ -1,5 +1,6 @@
 package com.zx.sms.concat;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -110,6 +111,18 @@ public class TestSmsConcatMessage {
 	}
 	
 	@Test 
+	public void testimojiSignatureTypeTail() throws SmsException
+	{
+		String sign = "";
+		String text = "❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤❤";
+		
+		System.out.println(Hex.encodeHex("❤".getBytes(StandardCharsets.UTF_16BE)));
+		text += sign;
+		SignatureType st = new SignatureType(true,sign);
+		testSignatureType(st,(AbstractSmsDcs)SmsDcs.getGeneralDataCodingDcs(SmsAlphabet.UCS2, SmsMsgClass.CLASS_UNKNOWN),text);
+	}
+	
+	@Test 
 	public void testSignatureTypeGSMTail() throws SmsException
 	{
 		String sign = "[cmss-ChinaMobile-cmos]";
@@ -118,6 +131,8 @@ public class TestSmsConcatMessage {
 		SignatureType st = new SignatureType(true,sign);
 		testSignatureType(st,(AbstractSmsDcs)SmppSmsDcs.getGeneralDataCodingDcs(SmsAlphabet.GSM, SmsMsgClass.CLASS_UNKNOWN),text);
 	}
+	
+	
 	
 	@Test 
 	public void testSignatureTypeGSMHead() throws SmsException
