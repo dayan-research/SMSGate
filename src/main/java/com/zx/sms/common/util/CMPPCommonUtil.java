@@ -2,8 +2,6 @@ package com.zx.sms.common.util;
 
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,16 +53,7 @@ public final class CMPPCommonUtil {
 		String value = null;
 		//解决在docker中运行，进程号都一样的问题
         try {
-            if (System.getSecurityManager() == null) {
-                value = System.getProperty(propertiesName);
-            } else {
-                value = AccessController.doPrivileged(new PrivilegedAction<String>() {
-                    @Override
-                    public String run() {
-                        return System.getProperty(propertiesName);
-                    }
-                });
-            }
+            value = System.getProperty(propertiesName);
         } catch (SecurityException e) {
         }
         if(StringUtils.isBlank(value) || (!StringUtils.isNumeric(value))) {

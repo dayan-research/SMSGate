@@ -116,7 +116,7 @@ public class SMGPReportData implements Serializable {
 			return true;
 		} catch (Exception ex) {
 			logger.warn("parse data err length:{} ; 0x{}", bytes.length, Hex.encodeHexString(bytes));
-			return true;
+			return false;
 		}
 	}
 

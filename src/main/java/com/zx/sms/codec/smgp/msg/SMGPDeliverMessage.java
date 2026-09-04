@@ -162,8 +162,13 @@ public class SMGPDeliverMessage extends SMGPBaseMessage implements LongSMSMessag
 			
 			if(isReport()){
 				SMGPReportData tmpreport = new SMGPReportData();
-				tmpreport.fromBytes(tmp);
-				report = tmpreport;
+				if(tmpreport.fromBytes(tmp)){
+					report = tmpreport;
+				}else{
+					//状态报告解析失败，不要留一个半截的report对象，原始字节保留在bMsgContent里
+					logger.warn("parse SMGPReportData failed, report is left null. msgId:{}", msgId);
+					bMsgContent = tmp;
+				}
 			}else{
 				bMsgContent = tmp;
 			}
@@ -183,7 +188,7 @@ public class SMGPDeliverMessage extends SMGPBaseMessage implements LongSMSMessag
 		
 		int msgLength = 0 ;
 		byte[] msgContent = null;
-		if(isReport()){
+		if(isReport() && report != null){
 			msgContent = report.toBytes();
 			msgLength = msgContent.length;
 		}else{
