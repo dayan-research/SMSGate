@@ -12,11 +12,11 @@
 	<properties>
 		<proqject.build.sourceEncoding>UTF-8</proqject.build.sourceEncoding>
 		<skipTests>false</skipTests>
-		<netty.version>4.1.86.Final</netty.version>
-		<java_source_version>1.6</java_source_version>
-		<java_target_version>1.6</java_target_version>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
+		<netty.version>4.1.106.Final</netty.version>
+		<java_source_version>1.8</java_source_version>
+		<java_target_version>1.8</java_target_version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<parent>
@@ -311,19 +311,19 @@
 				</executions>
 			</plugin>
 			<!-- GPG -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.6</version>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.apache.maven.plugins</groupId>-->
+<!--				<artifactId>maven-gpg-plugin</artifactId>-->
+<!--				<version>1.6</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<phase>verify</phase>-->
+<!--						<goals>-->
+<!--							<goal>sign</goal>-->
+<!--						</goals>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
