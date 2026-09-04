@@ -8,8 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class PropertiesUtils {
 	private static final Properties GLOBAL = loadProperties("global.properties");
-	private static final Properties JE = loadProperties("je.properties");
-	public static String GLOBAL_BDB_BASE_HOME = PropertiesUtils.getProperties("BDBBaseHome", System.getProperty("java.io.tmpdir"));
 	public static String getDefaultTransportCharset()
 	{
 		String charset = GLOBAL.getProperty("defaultTransportCharset");
@@ -24,12 +22,6 @@ public class PropertiesUtils {
 	{
 		String ret = GLOBAL.getProperty(key);
 		return  StringUtils.isBlank(ret) ? defaultValue :ret;
-	}
-	
-	public static Properties getJeProperties(){
-		Properties properties = new Properties();
-		properties.putAll(JE);
-		return properties;
 	}
 
 	private static Properties loadProperties(String resources) {

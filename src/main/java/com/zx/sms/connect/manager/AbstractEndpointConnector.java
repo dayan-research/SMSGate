@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.zx.sms.BaseMessage;
 import com.zx.sms.codec.cmpp.wap.LongMessageMarkerReadHandler;
 import com.zx.sms.common.GlobalConstance;
-import com.zx.sms.common.storedMap.BDBStoredMapFactoryImpl;
+import com.zx.sms.common.storedMap.StoredMapFactoryHolder;
 import com.zx.sms.common.storedMap.VersionObject;
 import com.zx.sms.connect.manager.cmpp.CMPPServerEndpointEntity;
 import com.zx.sms.handler.MessageLogHandler;
@@ -74,7 +74,7 @@ public abstract class AbstractEndpointConnector implements EndpointConnector<End
 			close(ch);
 		}
 		if (endpoint.isReSendFailMsg()) {
-			BDBStoredMapFactoryImpl.INS.close(endpoint.getId(),BDBPREFIX + endpoint.getId());
+			StoredMapFactoryHolder.get().close(endpoint.getId(),BDBPREFIX + endpoint.getId());
 		}
 	}
 
@@ -112,7 +112,7 @@ public abstract class AbstractEndpointConnector implements EndpointConnector<End
 			ConcurrentMap<Serializable, VersionObject> storedMap = null;
 			if (endpoint.isReSendFailMsg()) {
 				// 如果上次发送失败的消息要重发一次，则要创建持久化Map用于存储发送的message
-				storedMap = BDBStoredMapFactoryImpl.INS.buildMap(endpoint.getId(), BDBPREFIX + endpoint.getId());
+				storedMap = StoredMapFactoryHolder.get().buildMap(endpoint.getId(), BDBPREFIX + endpoint.getId());
 			} else {
 				storedMap = new ConcurrentHashMap();
 			}
@@ -166,7 +166,7 @@ public abstract class AbstractEndpointConnector implements EndpointConnector<End
 		}
 		synchronized(this) {
 			if( endpoint.isReSendFailMsg() && getChannels().size() == 0 ) {
-				BDBStoredMapFactoryImpl.INS.close(endpoint.getId(),BDBPREFIX + endpoint.getId());
+				StoredMapFactoryHolder.get().close(endpoint.getId(),BDBPREFIX + endpoint.getId());
 			}
 		}
 	}
