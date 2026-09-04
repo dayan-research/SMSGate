@@ -18,7 +18,7 @@ import com.zx.sms.codec.cmpp7F.packet.Cmpp7FPacketType;
 import com.zx.sms.common.GlobalConstance;
 import com.zx.sms.common.util.CMPPCommonUtil;
 import com.zx.sms.common.util.DefaultMsgIdUtil;
-import com.zx.sms.common.util.FstObjectSerializeUtil;
+import com.zx.sms.common.util.AttachmentSerializer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -113,7 +113,7 @@ public class Cmpp7FSubmitRequestMessageCodec extends MessageToMessageCodec<Messa
 			byte[] objbytes = new byte[attach];
 			bodyBuffer.readBytes(objbytes);
 			try{
-				requestMessage.setAttachment(FstObjectSerializeUtil.read(objbytes));
+				requestMessage.setAttachment(AttachmentSerializer.read(objbytes));
 			}catch(Exception ex){
 				logger.warn("Attachment decode error",ex);
 			}
@@ -184,7 +184,7 @@ public class Cmpp7FSubmitRequestMessageCodec extends MessageToMessageCodec<Messa
 			//在线公司自定义的字段
 			if(requestMessage.getAttachment()!=null){
 				try{
-					byte[] attach =FstObjectSerializeUtil.write(requestMessage.getAttachment());
+					byte[] attach =AttachmentSerializer.write(requestMessage.getAttachment());
 					bodyBuffer.writeInt(attach.length);
 					bodyBuffer.writeBytes(attach);
 				}catch(Exception ex){

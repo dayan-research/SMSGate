@@ -14,7 +14,7 @@ import com.zx.sms.connect.manager.EndpointEntity;
 import io.netty.channel.Channel;
 
 public class UniqueLongMsgId implements Serializable {
-	private final Logger logger = LoggerFactory.getLogger(UniqueLongMsgId.class);
+	private static final Logger logger = LoggerFactory.getLogger(UniqueLongMsgId.class);
 	/**
 	 * 
 	 */

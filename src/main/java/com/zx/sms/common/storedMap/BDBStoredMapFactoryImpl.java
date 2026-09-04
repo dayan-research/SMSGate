@@ -35,8 +35,8 @@ public enum BDBStoredMapFactoryImpl implements StoredMapFactory<Serializable, Ve
 	@Override
 	public synchronized ConcurrentMap<Serializable, VersionObject> buildMap(String storedpath, String name) {
 		QueueEnvironment env = buildBDB(storedpath);
-		FstSerialBinding<Serializable> messageKeyBinding = new FstSerialBinding<Serializable>();
-		FstSerialBinding<VersionObject> messageValueBinding = new FstSerialBinding<VersionObject>();
+		JavaSerialBinding<Serializable> messageKeyBinding = new JavaSerialBinding<Serializable>();
+		JavaSerialBinding<VersionObject> messageValueBinding = new JavaSerialBinding<VersionObject>();
 		Database db = env.buildDatabase(name);
 		String keyName = buildStoredMapKey(storedpath,name);
 		StoredMap<Serializable, VersionObject> map = storedMaps.get(keyName);

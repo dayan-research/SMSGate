@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.zx.sms.LongSMSMessage;
 import com.zx.sms.codec.LongMessageFrameCache;
 import com.zx.sms.codec.cmpp.wap.LongMessageFrame;
-import com.zx.sms.common.util.FstObjectSerializeUtil;
+import com.zx.sms.common.util.AttachmentSerializer;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -58,7 +58,7 @@ public class RedisLongMessageFrameCache implements LongMessageFrameCache {
 			 * 相当于下面代码加全局分布锁，使用Lua实现 jedis.setbit(bitsetKey, pkNumber, true); long bitCount  = jedis.bitcount(bitsetKey); return pkTotal == bitCount;
 			 */
 			//1:先将frame加入Set
-			pipe.sadd(key.getBytes(StandardCharsets.UTF_8), FstObjectSerializeUtil.write(currFrame));
+			pipe.sadd(key.getBytes(StandardCharsets.UTF_8), AttachmentSerializer.write(currFrame));
 			
 			//2: 再统计bitset 
 			Response<Object> response = pipe.evalsha(scriptHash, Collections.singletonList(bitsetKey), Collections.singletonList(String.valueOf(pkNumber)));
@@ -93,7 +93,7 @@ public class RedisLongMessageFrameCache implements LongMessageFrameCache {
 			List<LongMessageFrame> frames = new ArrayList<LongMessageFrame>();
 			for (byte[] arr : allFrame.get()) {
 				try {
-					LongMessageFrame f = (LongMessageFrame) FstObjectSerializeUtil.read(arr);
+					LongMessageFrame f = (LongMessageFrame) AttachmentSerializer.read(arr);
 					frames.add(f);
 				} catch (Exception e) {
 					logger.warn("", e);

@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.zx.sms.codec.AbstractTestMessageCodec;
 import com.zx.sms.codec.cmpp.msg.CmppSubmitRequestMessage;
-import com.zx.sms.common.util.FstObjectSerializeUtil;
+import com.zx.sms.common.util.AttachmentSerializer;
 import com.zx.sms.common.util.NettyByteBufUtil;
 
 import io.netty.buffer.ByteBuf;
@@ -25,8 +25,8 @@ public class TestRemoteWriteCardSubmitMsg extends AbstractTestMessageCodec<CmppS
 		CmppSubmitRequestMessage submit = (CmppSubmitRequestMessage)ch.readInbound();
 		System.out.println(submit);
 
-		byte[] serialdata = FstObjectSerializeUtil.write(submit);
-		ch.writeOutbound(FstObjectSerializeUtil.read(serialdata));
+		byte[] serialdata = AttachmentSerializer.write(submit);
+		ch.writeOutbound(AttachmentSerializer.read(serialdata));
 		ByteBuf resultni = ch.readOutbound();
 		System.out.println(ByteBufUtil.hexDump(resultni));
 		Assert.assertArrayEquals(prepareMsgData(), NettyByteBufUtil.toArray(resultni, resultni.readableBytes()));
