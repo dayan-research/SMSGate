@@ -59,14 +59,6 @@ public class TestMixedServerEndPoint {
 	MessageReceiveHandler sgmpreceiver = new SMGPMessageReceiveHandler();
 	MessageReceiveHandler smppreceiver = new SMPPMessageReceiveHandler();
 
-	private static String testResource(String name) {
-		try {
-			return new java.io.File(TestMixedServerEndPoint.class.getResource(name).toURI()).getAbsolutePath();
-		} catch (Exception ex) {
-			throw new IllegalStateException("test resource not found : " + name, ex);
-		}
-	}
-
 	@Before
 	public void prepareServer() {
 
@@ -78,8 +70,8 @@ public class TestMixedServerEndPoint {
 		server.setValid(true);
 		// 使用ssl加密数据流
 		server.setUseSSL(useSSL);
-		server.setSslCertPath(testResource("/ssl/localhost-cert.pem"));
-		server.setSslKeyPath(testResource("/ssl/localhost-key.pem"));
+		server.setSslCertPath(TestConstants.sslCertPath);
+		server.setSslKeyPath(TestConstants.sslKeyPath);
 
 		CMPPServerChildEndpointEntity cmppchild = new CMPPServerChildEndpointEntity();
 		cmppchild.setId("mixCmppChild");

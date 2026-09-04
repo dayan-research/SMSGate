@@ -128,8 +128,8 @@ public abstract class AbstractServerEndpointConnector extends AbstractEndpointCo
 			SelfSignedCertificate ssc = new SelfSignedCertificate();
 			return SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
 		} catch (Exception ex) {
-			logger.error("create server SslContext failed for endpoint {}", entity.getId(), ex);
-			return null;
+			//宁可开不起来，也不要在要求加密的端口上明文提供服务
+			throw new IllegalStateException("create server SslContext failed for endpoint " + entity.getId(), ex);
 		}
 	}
 	protected abstract void doinitPipeLine(ChannelPipeline pipeline) ;

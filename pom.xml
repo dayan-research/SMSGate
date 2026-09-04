@@ -224,6 +224,8 @@
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
 					<trimStackTrace>false</trimStackTrace>
+					<!-- 端到端用例大多在Promise上无限等待，卡住时要变成失败而不是挂死构建 -->
+					<forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
 				</configuration>
 			</plugin>
 			<plugin>

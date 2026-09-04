@@ -1,10 +1,14 @@
 package com.zx.sms.connect.manager.cmpp;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +34,34 @@ import io.netty.channel.ChannelHandlerContext;
 public class TestCMPPEndPoint {
 	private static final Logger logger = LoggerFactory.getLogger(TestCMPPEndPoint.class);
 
+	/**
+	 * 这个用例靠 126.0.0.x 连不通来验证多IP的failover：只有连不上前一个地址，才会切到下一个。
+	 * 有些环境（全局VPN、透明代理）对任意地址都能建成TCP连接，这个前提就不成立了，
+	 * 客户端会一直卡在那个假地址上，用例没有意义，直接跳过。
+	 */
+	private static void assumeUnroutable(String host, int port) {
+		boolean connectable = false;
+		Socket socket = new Socket();
+		try {
+			socket.connect(new InetSocketAddress(host, port), 2000);
+			connectable = true;
+		} catch (IOException expected) {
+			// 连不上，正是这个用例需要的前提
+		} finally {
+			try {
+				socket.close();
+			} catch (IOException ignore) {
+			}
+		}
+		Assume.assumeFalse(host + ":" + port + " is connectable here (global VPN / transparent proxy?), "
+				+ "so the multi-host failover precondition of this test does not hold", connectable);
+	}
+
 	@Test
 	public void testCMPPEndpoint() throws Exception {
 		EndpointManager.INS.removeAll();
 		int port = 16890;
+		assumeUnroutable("126.0.0.1", port);
 		CMPPServerEndpointEntity server = new CMPPServerEndpointEntity();
 		server.setId("server");
 		server.setHost("0.0.0.0");

@@ -54,6 +54,8 @@ public class TestProxyProtocol {
 		server.setValid(true);
 		// 使用ssl加密数据流
 		server.setUseSSL(useSSL);
+		server.setSslCertPath(TestConstants.sslCertPath);
+		server.setSslKeyPath(TestConstants.sslKeyPath);
 		
 		//打开支持proxy protocol的开关
 		server.setProxyProtocol(true);
@@ -126,6 +128,8 @@ public class TestProxyProtocol {
 		client.setMaxRetryCnt((short)1);
 		client.setCloseWhenRetryFailed(false);
 		client.setUseSSL(useSSL);
+		//服务端用的是测试自签名证书，客户端不做证书校验
+		client.setSslTrustAll(useSSL);
 		 client.setWriteLimit(250);
 		client.setReSendFailMsg(TestConstants.isReSendFailMsg);
 		client.setSupportLongmsg(SupportLongMessage.BOTH);

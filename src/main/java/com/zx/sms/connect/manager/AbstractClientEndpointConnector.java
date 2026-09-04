@@ -187,8 +187,8 @@ public abstract class AbstractClientEndpointConnector extends AbstractEndpointCo
 			// 都没配就用JDK默认的信任链
 			return builder.build();
 		}catch(Exception ex){
-			logger.error("create client SslContext failed for endpoint {}", entity.getId(), ex);
-			return null;
+			//宁可连不上，也不要退回明文
+			throw new IllegalStateException("create client SslContext failed for endpoint " + entity.getId(), ex);
 		}
 	}
 }
