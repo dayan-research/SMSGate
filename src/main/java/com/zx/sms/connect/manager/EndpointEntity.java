@@ -109,6 +109,34 @@ public abstract class EndpointEntity implements Serializable {
 	private boolean useSSL = false;
 	
 	/**
+	 * 客户端：是否信任任意服务端证书。默认false，即按JDK默认的信任链校验。
+	 * <br />设为true等于关掉了证书校验，只适合联调，不要用于生产。
+	 */
+	private boolean sslTrustAll = false;
+	
+	/**
+	 * 客户端：信任的CA/服务端证书文件（PEM）。为空时用JDK默认的信任链。
+	 * <br />{@link #sslTrustAll} 为true时本项被忽略。
+	 */
+	private String sslTrustCertPath;
+	
+	/**
+	 * 服务端：证书链文件（PEM）。与 {@link #sslKeyPath} 同时设置才生效，
+	 * 否则退回到临时生成的自签名证书。
+	 */
+	private String sslCertPath;
+	
+	/**
+	 * 服务端：私钥文件（PKCS#8 PEM）。
+	 */
+	private String sslKeyPath;
+	
+	/**
+	 * 服务端：私钥的密码。私钥没加密时留空。
+	 */
+	private String sslKeyPassword;
+	
+	/**
 	 * 设置代理地址。通过正向代理发起连接
 	 */
 	private String proxy;
@@ -250,6 +278,36 @@ public abstract class EndpointEntity implements Serializable {
 	}
 	public void setUseSSL(boolean useSSL) {
 		this.useSSL = useSSL;
+	}
+	public boolean isSslTrustAll() {
+		return sslTrustAll;
+	}
+	public void setSslTrustAll(boolean sslTrustAll) {
+		this.sslTrustAll = sslTrustAll;
+	}
+	public String getSslTrustCertPath() {
+		return sslTrustCertPath;
+	}
+	public void setSslTrustCertPath(String sslTrustCertPath) {
+		this.sslTrustCertPath = sslTrustCertPath;
+	}
+	public String getSslCertPath() {
+		return sslCertPath;
+	}
+	public void setSslCertPath(String sslCertPath) {
+		this.sslCertPath = sslCertPath;
+	}
+	public String getSslKeyPath() {
+		return sslKeyPath;
+	}
+	public void setSslKeyPath(String sslKeyPath) {
+		this.sslKeyPath = sslKeyPath;
+	}
+	public String getSslKeyPassword() {
+		return sslKeyPassword;
+	}
+	public void setSslKeyPassword(String sslKeyPassword) {
+		this.sslKeyPassword = sslKeyPassword;
 	}
 	
     public boolean isProxyProtocol() {

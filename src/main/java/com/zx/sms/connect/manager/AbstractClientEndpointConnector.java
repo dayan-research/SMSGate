@@ -1,5 +1,6 @@
 package com.zx.sms.connect.manager;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
@@ -174,10 +175,19 @@ public abstract class AbstractClientEndpointConnector extends AbstractEndpointCo
 	}
 	
 	protected SslContext createSslCtx() {
+		EndpointEntity entity = getEndpointEntity();
 		try{
-			return SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+			SslContextBuilder builder = SslContextBuilder.forClient();
+			if (entity.isSslTrustAll()) {
+				logger.warn("endpoint {} : sslTrustAll is on, any server certificate is accepted. Do not use this in production.", entity.getId());
+				builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+			} else if (StringUtils.isNotBlank(entity.getSslTrustCertPath())) {
+				builder.trustManager(new File(entity.getSslTrustCertPath()));
+			}
+			// 都没配就用JDK默认的信任链
+			return builder.build();
 		}catch(Exception ex){
-			ex.printStackTrace();
+			logger.error("create client SslContext failed for endpoint {}", entity.getId(), ex);
 			return null;
 		}
 	}

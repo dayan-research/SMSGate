@@ -59,6 +59,14 @@ public class TestMixedServerEndPoint {
 	MessageReceiveHandler sgmpreceiver = new SMGPMessageReceiveHandler();
 	MessageReceiveHandler smppreceiver = new SMPPMessageReceiveHandler();
 
+	private static String testResource(String name) {
+		try {
+			return new java.io.File(TestMixedServerEndPoint.class.getResource(name).toURI()).getAbsolutePath();
+		} catch (Exception ex) {
+			throw new IllegalStateException("test resource not found : " + name, ex);
+		}
+	}
+
 	@Before
 	public void prepareServer() {
 
@@ -70,6 +78,8 @@ public class TestMixedServerEndPoint {
 		server.setValid(true);
 		// 使用ssl加密数据流
 		server.setUseSSL(useSSL);
+		server.setSslCertPath(testResource("/ssl/localhost-cert.pem"));
+		server.setSslKeyPath(testResource("/ssl/localhost-key.pem"));
 
 		CMPPServerChildEndpointEntity cmppchild = new CMPPServerChildEndpointEntity();
 		cmppchild.setId("mixCmppChild");
@@ -239,6 +249,8 @@ public class TestMixedServerEndPoint {
 		client.setMaxRetryCnt((short) 1);
 		client.setCloseWhenRetryFailed(false);
 		client.setUseSSL(useSSL);
+		//服务端用的是测试自签名证书，客户端不做证书校验
+		client.setSslTrustAll(useSSL);
 		client.setWriteLimit(writeLimit);
 		client.setWindow(16);
 		client.setReSendFailMsg(TestConstants.isReSendFailMsg);
@@ -281,6 +293,8 @@ public class TestMixedServerEndPoint {
 		client.setMaxChannels((short) 1);
 		client.setRetryWaitTimeSec((short) 100);
 		client.setUseSSL(useSSL);
+		//服务端用的是测试自签名证书，客户端不做证书校验
+		client.setSslTrustAll(useSSL);
 		client.setReSendFailMsg(TestConstants.isReSendFailMsg);
 		client.setIdleTimeSec((short) 120);
 		client.setWriteLimit(writeLimit);
@@ -319,6 +333,8 @@ public class TestMixedServerEndPoint {
 		client.setMaxChannels((short) 1);
 		client.setRetryWaitTimeSec((short) 100);
 		client.setUseSSL(useSSL);
+		//服务端用的是测试自签名证书，客户端不做证书校验
+		client.setSslTrustAll(useSSL);
 		client.setReSendFailMsg(TestConstants.isReSendFailMsg);
 		client.setClientVersion((byte) 0x13);
 		client.setWriteLimit(writeLimit);
@@ -359,6 +375,8 @@ public class TestMixedServerEndPoint {
 		client.setMaxChannels((short) 1);
 		client.setRetryWaitTimeSec((short) 100);
 		client.setUseSSL(useSSL);
+		//服务端用的是测试自签名证书，客户端不做证书校验
+		client.setSslTrustAll(useSSL);
 		client.setReSendFailMsg(TestConstants.isReSendFailMsg);
 		client.setWriteLimit(writeLimit);
 //		client.setReadLimit(200);

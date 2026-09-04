@@ -1,7 +1,9 @@
 package com.zx.sms.connect.manager;
 
+import java.io.File;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,17 +110,25 @@ public abstract class AbstractServerEndpointConnector extends AbstractEndpointCo
 		};
 	};
 
+	@SuppressWarnings("deprecation")
 	protected SslContext createSslCtx() {
+		EndpointEntity entity = getEndpointEntity();
 		try {
-			if (getEndpointEntity().isUseSSL()) {
-				SelfSignedCertificate ssc = new SelfSignedCertificate();
-				return SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-			} else {
+			if (!entity.isUseSSL()) {
 				return null;
 			}
-
+			String certPath = entity.getSslCertPath();
+			String keyPath = entity.getSslKeyPath();
+			if (StringUtils.isNotBlank(certPath) && StringUtils.isNotBlank(keyPath)) {
+				String keyPassword = StringUtils.isBlank(entity.getSslKeyPassword()) ? null : entity.getSslKeyPassword();
+				return SslContextBuilder.forServer(new File(certPath), new File(keyPath), keyPassword).build();
+			}
+			logger.warn("endpoint {} : useSSL is on but sslCertPath/sslKeyPath are not set, "
+					+ "using a throwaway self-signed certificate. Do not use this in production.", entity.getId());
+			SelfSignedCertificate ssc = new SelfSignedCertificate();
+			return SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.error("create server SslContext failed for endpoint {}", entity.getId(), ex);
 			return null;
 		}
 	}
