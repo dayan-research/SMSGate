@@ -121,8 +121,8 @@ public abstract class EndpointEntity implements Serializable {
 	private String sslTrustCertPath;
 	
 	/**
-	 * 服务端：证书链文件（PEM）。与 {@link #sslKeyPath} 同时设置才生效，
-	 * 否则退回到临时生成的自签名证书。
+	 * 服务端：证书链文件（PEM）。{@link #useSSL} 为true时必须与 {@link #sslKeyPath} 一起设置，
+	 * 缺一个或文件不存在，端点在 open 时就抛 IllegalStateException，不会退回自签名证书，更不会退回明文。
 	 */
 	private String sslCertPath;
 	

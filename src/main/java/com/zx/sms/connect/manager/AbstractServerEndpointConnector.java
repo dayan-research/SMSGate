@@ -25,7 +25,6 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 /**
@@ -110,26 +109,39 @@ public abstract class AbstractServerEndpointConnector extends AbstractEndpointCo
 		};
 	};
 
-	@SuppressWarnings("deprecation")
+	/**
+	 * useSSL 的服务端必须配 sslCertPath 与 sslKeyPath。以前缺了就临时生成自签名证书顶上，
+	 * 但 Netty 的 SelfSignedCertificate 在 JDK 21+ 上已经生成不出来（依赖被移除的内部 API），
+	 * 报的是一个和配置无关的内部错误；而且一个每次启动都变的证书在生产里本来就不该存在。
+	 * 现在缺配置直接说缺什么、文件不存在直接说哪个文件，都在 open 端点时抛出，不等到有客户端连上。
+	 */
 	protected SslContext createSslCtx() {
 		EndpointEntity entity = getEndpointEntity();
-		try {
-			if (!entity.isUseSSL()) {
-				return null;
-			}
-			String certPath = entity.getSslCertPath();
-			String keyPath = entity.getSslKeyPath();
-			if (StringUtils.isNotBlank(certPath) && StringUtils.isNotBlank(keyPath)) {
-				String keyPassword = StringUtils.isBlank(entity.getSslKeyPassword()) ? null : entity.getSslKeyPassword();
-				return SslContextBuilder.forServer(new File(certPath), new File(keyPath), keyPassword).build();
-			}
-			logger.warn("endpoint {} : useSSL is on but sslCertPath/sslKeyPath are not set, "
-					+ "using a throwaway self-signed certificate. Do not use this in production.", entity.getId());
-			SelfSignedCertificate ssc = new SelfSignedCertificate();
-			return SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-		} catch (Exception ex) {
+		if (!entity.isUseSSL()) {
+			return null;
+		}
+		String certPath = entity.getSslCertPath();
+		String keyPath = entity.getSslKeyPath();
+		if (StringUtils.isBlank(certPath) || StringUtils.isBlank(keyPath)) {
 			//宁可开不起来，也不要在要求加密的端口上明文提供服务
-			throw new IllegalStateException("create server SslContext failed for endpoint " + entity.getId(), ex);
+			throw new IllegalStateException("endpoint " + entity.getId()
+					+ " : useSSL is on but sslCertPath/sslKeyPath are not both set (sslCertPath="
+					+ certPath + ", sslKeyPath=" + keyPath + ")");
+		}
+		File cert = new File(certPath);
+		File key = new File(keyPath);
+		if (!cert.isFile()) {
+			throw new IllegalStateException("endpoint " + entity.getId() + " : sslCertPath does not exist or is not a file: " + cert.getAbsolutePath());
+		}
+		if (!key.isFile()) {
+			throw new IllegalStateException("endpoint " + entity.getId() + " : sslKeyPath does not exist or is not a file: " + key.getAbsolutePath());
+		}
+		try {
+			String keyPassword = StringUtils.isBlank(entity.getSslKeyPassword()) ? null : entity.getSslKeyPassword();
+			return SslContextBuilder.forServer(cert, key, keyPassword).build();
+		} catch (Exception ex) {
+			throw new IllegalStateException("create server SslContext failed for endpoint " + entity.getId()
+					+ " from sslCertPath=" + cert.getAbsolutePath() + ", sslKeyPath=" + key.getAbsolutePath(), ex);
 		}
 	}
 	protected abstract void doinitPipeLine(ChannelPipeline pipeline) ;
