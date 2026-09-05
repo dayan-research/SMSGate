@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.zx.sms.common.GlobalConstance;
 import com.zx.sms.common.NotSupportedException;
 
 import io.netty.bootstrap.Bootstrap;
@@ -32,6 +33,12 @@ public abstract class AbstractClientEndpointConnector extends AbstractEndpointCo
 	private static final Logger logger = LoggerFactory.getLogger(AbstractClientEndpointConnector.class);
 	private Bootstrap bootstrap = new Bootstrap();
 	private SslContext sslCtx = null;
+	/**
+	 * 下一次 open() 从 host 列表的哪一个开始。TCP 连不上会在本次 open() 里顺延到下一个；
+	 * 连上了但会话没建立（登录被拒、还没登录就被对方关掉）也要顺延，否则每秒一次的重连
+	 * 会永远撞同一个拒绝登录的地址，而列表里别的地址明明可用。登录成功就停在当前地址。
+	 */
+	private volatile int nextHostIdx = 0;
 	
 	public AbstractClientEndpointConnector(EndpointEntity endpoint) {
 		super(endpoint);
@@ -65,15 +72,21 @@ public abstract class AbstractClientEndpointConnector extends AbstractEndpointCo
 			return null;
 		}
 		
-		return doConnect(host.split(","),0,getEndpointEntity().getPort(),localaddr);
+		String[] hosts = host.split(",");
+		return doConnect(hosts, nextHostIdx % hosts.length, 0, getEndpointEntity().getPort(), localaddr);
 	}
-	
-	private ChannelFuture doConnect(final String[] hosts,final int idx ,final int port ,final SocketAddress localaddress){
-		if(idx>=hosts.length){
-			logger.error("hosts.length is {} ,but idx is {}.",hosts.length,idx);
-			return null;
-		}
-	
+
+	/** 下一次 open() 会先连 host 列表里的第几个。给测试和诊断看。 */
+	public int nextHostIndex() {
+		return nextHostIdx;
+	}
+
+	/**
+	 * @param idx   本次连第几个 host
+	 * @param tried 本次 open() 里已经连不上的 host 个数；每个 host 最多试一次，试完一轮就停
+	 */
+	private ChannelFuture doConnect(final String[] hosts,final int idx ,final int tried, final int port ,final SocketAddress localaddress){
+		final int nextIdx = (idx + 1) % hosts.length;
 		ChannelFuture future = bootstrap.connect(SocketUtils.socketAddress(hosts[idx],port),localaddress);
 		
 		future.addListener(new GenericFutureListener<ChannelFuture>(){
@@ -81,14 +94,30 @@ public abstract class AbstractClientEndpointConnector extends AbstractEndpointCo
 			@Override
 			public void operationComplete(ChannelFuture f) throws Exception {
 				if(!f.isSuccess()){
-					if(idx+1 < hosts.length){
-						logger.info("connect {} faild .retry connect to next host {}:{}",hosts[idx],hosts[idx+1],port);
-						doConnect(hosts,idx+1, port,localaddress);
+					if(tried+1 < hosts.length){
+						logger.info("connect {} faild .retry connect to next host {}:{}",hosts[idx],hosts[nextIdx],port);
+						doConnect(hosts, nextIdx, tried+1, port,localaddress);
 					}else{
 						logger.error("Connect to {}:{} failed. cause by {}.",getEndpointEntity().getHost(),port,f.cause().getMessage());
 					}
+					return;
 				}
-		}});
+				// TCP 通了，先认这个地址；登录成功后它就是以后重连的首选
+				nextHostIdx = idx;
+				final Channel ch = f.channel();
+				ch.closeFuture().addListener(new GenericFutureListener<ChannelFuture>() {
+					@Override
+					public void operationComplete(ChannelFuture closed) throws Exception {
+						// channelActiveTime 只在 addChannel（即登录成功）时设置，且断开后不清除：
+						// 它为空说明这条连接从连上到关闭都没建立过会话——登录被拒或被对方直接关掉。
+						if (ch.attr(GlobalConstance.channelActiveTime).get() == null && hosts.length > 1) {
+							nextHostIdx = nextIdx;
+							logger.warn("connected {}:{} but no session was established; next attempt goes to {}",
+									hosts[idx], port, hosts[nextIdx]);
+						}
+					}
+				});
+			}});
 		
 		return future;
 	}
